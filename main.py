@@ -92,54 +92,150 @@ def run_pipeline(use_bert: bool = False, demo: bool = True, india: bool = False,
     if india:
         validate_data_quality(prices, posts_raw, ff5)
 
-    print("== Step 2: sentiment classification ==")
-    if use_bert:
-        from src.sentiment.bert_sentiment import train as bert_train, predict as bert_predict
-        bert_train(
-            labeled_csv=str(data_path.parent / "labeled" / "annotated_posts.csv"),
-            output_dir=str(Path("models") / "bert_sentiment"),
-            base_model="ProsusAI/finbert" if india else "bert-base-chinese"
-        )
-        posts = bert_predict(
-            posts_csv=str(data_path / "posts.csv"),
-            model_dir=str(Path("models") / "bert_sentiment"),
-            output_csv=str(out_path / "posts_with_sentiment.csv"),
-        )
-    else:
-        posts = fast_sentiment_labels(posts_raw)
-        posts.to_csv(out_path / "posts_with_sentiment.csv", index=False)
-
-    print("== Step 3: sentiment & homophily indicators ==")
-    sentiment_ind = build_sentiment_indicators(posts)
-    sentiment_ind.to_csv(out_path / "sentiment_indicators.csv", index=False)
-    
-    # Check if thread_id/author exists to compute homophily
-    if "thread_id" in posts.columns and "author" in posts.columns and not india:
-        user_homo = compute_user_stock_day_homophily(posts)
-        homophily_ind = aggregate_stock_homophily(user_homo)
-        homophily_ind.to_csv(out_path / "homophily.csv", index=False)
-    else:
-        print("[!] Skipping Homophily (thread_id or author missing in dataset)")
+    print("== Step 2 & 3: sentiment classification & indicators ==")
+    if india and not synthetic_india:
+        sentiment_path = out_path / "daily_sentiment_features.csv"
+        if not sentiment_path.exists():
+            from src.features.india_sentiment import run_sentiment_pipeline
+            run_sentiment_pipeline()
+        sentiment_ind = pd.read_csv(sentiment_path)
+        # Ensure date is parsed properly for merging
+        sentiment_ind["date"] = pd.to_datetime(sentiment_ind["date"]).dt.normalize()
         homophily_ind = None
+    else:
+        if use_bert:
+            from src.sentiment.bert_sentiment import train as bert_train, predict as bert_predict
+            bert_train(
+                labeled_csv=str(data_path.parent / "labeled" / "annotated_posts.csv"),
+                output_dir=str(Path("models") / "bert_sentiment"),
+                base_model="ProsusAI/finbert" if india else "bert-base-chinese"
+            )
+            posts = bert_predict(
+                posts_csv=str(data_path / "posts.csv"),
+                model_dir=str(Path("models") / "bert_sentiment"),
+                output_csv=str(out_path / "posts_with_sentiment.csv"),
+            )
+        else:
+            posts = fast_sentiment_labels(posts_raw)
+            posts.to_csv(out_path / "posts_with_sentiment.csv", index=False)
+
+        sentiment_ind = build_sentiment_indicators(posts)
+        sentiment_ind.to_csv(out_path / "sentiment_indicators.csv", index=False)
+        
+        # Check if thread_id/author exists to compute homophily
+        if "thread_id" in posts.columns and "author" in posts.columns and not india:
+            user_homo = compute_user_stock_day_homophily(posts)
+            homophily_ind = aggregate_stock_homophily(user_homo)
+            homophily_ind.to_csv(out_path / "homophily.csv", index=False)
+        else:
+            print("[!] Skipping Homophily (thread_id or author missing in dataset)")
+            homophily_ind = None
 
     print("== Step 4: abnormal returns ==")
     ar_df = compute_abnormal_returns(prices, ff5, window=60 if demo or india else 250)
     ar_df.to_csv(out_path / "abnormal_returns.csv", index=False)
+    
+    print("== Step 5: control / factor features ==")
+    from src.features.financial_features import build_control_variables
+    control_feat = build_control_variables(ar_df)
+    control_feat.to_csv(out_path / "control_features.csv", index=False)
 
-    print("== Step 6: build fusion matrix + train SPCM ==")
+    print("== Step 6: build fusion matrix + validate ==")
     price_feat = build_price_features(prices)
     labels = build_labels(prices)
-    fusion = build_fusion_matrix(price_feat, sentiment_ind, homophily_ind, labels)
+    
+    # SHIFT SENTIMENT DATES TO AVOID LEAKAGE
+    from src.models.spcm import shift_sentiment_dates
+    sentiment_ind = shift_sentiment_dates(sentiment_ind, price_feat)
+    
+    fusion = build_fusion_matrix(price_feat, sentiment_ind, homophily_ind, labels, control_feat=control_feat)
 
-    model, scaler, feature_cols = train_spcm(fusion, classifier="nn")
-    proba = predict_proba(model, scaler, feature_cols, fusion)
-    auc = compute_auc(fusion, proba)
-    print(f"In-sample SPCM AUC: {auc:.4f}")
-
-    print("== Step 7: rolling backtest ==")
-    all_dates = sorted(fusion["date"].unique())
-    bt_dates = all_dates[len(all_dates) // 2::5]  # start halfway through, rebalance every 5 days
-    recs, daily_auc = rolling_backtest(fusion, bt_dates, classifier="nn", top_k=5)
+    print("\nWALK-FORWARD SMOKE TEST")
+    
+    # Sort and ensure time is chronological
+    fusion = fusion.sort_values("date").reset_index(drop=True)
+    
+    # Smoke test on a small subset (e.g., 2018-2019 train, 2020 test, 2021 test)
+    # Define folds manually for the smoke test
+    folds = [
+        {"train_start": "2018-01-01", "train_end": "2018-12-14", "test_start": "2019-01-01", "test_end": "2019-12-31"},
+        {"train_start": "2018-01-01", "train_end": "2019-12-16", "test_start": "2020-01-01", "test_end": "2020-12-31"},
+    ]
+    
+    from sklearn.metrics import roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
+    
+    any_overlap = False
+    
+    for i, f in enumerate(folds):
+        print(f"\nFold {i+1}:")
+        train_mask = (fusion["date"] >= f["train_start"]) & (fusion["date"] <= f["train_end"])
+        test_mask = (fusion["date"] >= f["test_start"]) & (fusion["date"] <= f["test_end"])
+        
+        train_df = fusion[train_mask].copy()
+        test_df = fusion[test_mask].copy()
+        
+        if train_df.empty or test_df.empty:
+            print(f"Skipping Fold {i+1} due to empty train or test set.")
+            continue
+            
+        max_train_date = train_df["date"].max()
+        min_test_date = test_df["date"].min()
+        
+        overlap = max_train_date >= min_test_date
+        if overlap:
+            any_overlap = True
+            
+        print(f"Train: {train_df['date'].min().date()} to {max_train_date.date()}")
+        print(f"Test:  {min_test_date.date()} to {test_df['date'].max().date()}")
+        print(f"Train rows: {len(train_df)}")
+        print(f"Test rows:  {len(test_df)}")
+        print(f"Train stocks: {train_df['stock'].nunique()}")
+        print(f"Test stocks:  {test_df['stock'].nunique()}")
+        
+        # Train
+        model, scaler, imputer, feature_cols = train_spcm(fusion, classifier="nn", train_mask=train_mask)
+        
+        # Test (using same imputer and scaler via predict_proba)
+        test_proba = predict_proba(model, scaler, imputer, feature_cols, test_df)
+        
+        # Evaluate on TEST only
+        # We need true labels. Drop rows in test where label is NaN
+        test_eval = test_df.merge(test_proba, on=["stock", "date"], how="inner").dropna(subset=["label", "proba"])
+        
+        pos_train = train_df["label"].sum()
+        pos_test = test_eval["label"].sum()
+        print(f"Positive-label count in train: {pos_train}")
+        print(f"Positive-label count in test:  {pos_test}")
+        
+        if len(test_eval) == 0:
+            print("AUC: NaN (no valid test labels)")
+            continue
+            
+        y_true = test_eval["label"].values
+        y_pred = (test_eval["proba"] >= 0.5).astype(int)
+        
+        if len(set(y_true)) < 2:
+            print("AUC: NaN (test set contains only one class)")
+        else:
+            auc = roc_auc_score(y_true, test_eval["proba"])
+            print(f"AUC: {auc:.4f}")
+            
+        acc = accuracy_score(y_true, y_pred)
+        prec = precision_score(y_true, y_pred, zero_division=0)
+        rec = recall_score(y_true, y_pred, zero_division=0)
+        f1 = f1_score(y_true, y_pred, zero_division=0)
+        
+        print(f"Accuracy:  {acc:.4f}")
+        print(f"Precision: {prec:.4f}")
+        print(f"Recall:    {rec:.4f}")
+        print(f"F1:        {f1:.4f}")
+        print(f"Number of test observations: {len(test_eval)}")
+        
+    print(f"\nAny train/test date overlap: {any_overlap}")
+    
+    if india and not synthetic_india:
+        import sys
+        sys.exit(0)
     if len(daily_auc):
         print(f"Backtest mean AUC: {daily_auc['auc'].mean():.4f}")
 

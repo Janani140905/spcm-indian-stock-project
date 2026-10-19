@@ -1,0 +1,51 @@
+================================================================================
+DATA QUALITY & INTEGRITY REPORT: REAL INDIAN HISTORICAL SPCM DATASET
+================================================================================
+Generated: 2026-10-19 | Evaluated Universe: NSE Large-Cap Prototype (10 stocks)
+
+1. STOCK UNIVERSE & HDFCBANK NEWS AUDIT:
+   - Prices Stock Universe (10 stocks): BHARTIARTL, HDFCBANK, HINDUNILVR, ICICIBANK, INFY, ITC, KOTAKBANK, RELIANCE, SBIN, TCS
+   - Clean News Stock Universe (9 stocks): BHARTIARTL, HINDUNILVR, ICICIBANK, INFY, ITC, KOTAKBANK, RELIANCE, SBIN, TCS
+   - HDFCBANK News Status: 0 headlines in posts_clean.csv (completely missing from news).
+   - HDFCBANK Sentiment Grid: 2,484 days, headline_count=0, news_available=0, non-NaN Sent=0.
+   - Verdict: HDFCBANK is legitimately preserved in the market price cross-section, with news_available=0 and NaN sentiment appropriately imputed/handled.
+
+2. COMMON DATE RANGE & TRADING DATES:
+   - Stock Prices (NSE OHLCV): 2016-01-01 to 2026-01-14 (2484 trading days, 2,484 per stock).
+   - Indian Market Factors (IIMA 4-Factor): 1993-10-01 to 2025-12-31 (8004 trading days).
+   - Cleaned Financial News (NifSent50): 2008-08-24 to 2025-01-10 (2,776 cleaned headlines).
+   - Common Walk-Forward Horizon (with complete prices & factors): 2016-01-01 to 2025-12-31 (2,474 trading days per stock = 24,740 stock-days).
+
+3. MISSING VALUES, DUPLICATES, & INVALID OBSERVATIONS:
+   - Price Missing Values: {'open': 0, 'high': 0, 'low': 0, 'close': 0, 'volume': 0, 'turnover': 0}
+   - Price Duplicates (stock, date): 0
+   - Price Values <= 0: 0
+   - Negative Volume: 0
+   - Factor Date Duplicates: 0
+   - News Duplicates (stock, post_time, text): 0
+   - Verdict: Prices, factors, and cleaned news have zero malformed, negative, or duplicate records.
+
+4 & 5. FACTOR CONVERSION AUDIT (PERCENTAGE VS DECIMAL):
+   - Raw IIMA Factor File: Expressed as percentages (max absolute value: 15.8334).
+   - Processed Factor File (ff4_factors.csv): Expressed as decimals (max absolute value: 0.1583).
+   - Double Division Check: Processed file was divided by 100 once during preprocessing. The model loaders load it directly without dividing twice.
+   - Verdict: PASS. Decimal units are strictly verified.
+
+6. HEADLINE DUPLICATION & CROSS-STOCK BROADCASTING:
+   - Total Clean Headlines: 2,776
+   - Unique Headline Texts: 2,331
+   - Cross-Stock Broadcast Headlines: 198 unique texts appeared across multiple stocks on the same date (e.g. macro/index events).
+   - Verdict: PASS. Within each stock, duplicates are 0. Cross-stock repetitions represent valid multi-stock market news.
+
+7. LEAKED SOURCE SENTIMENT LABELS:
+   - Kaggle Leaked Sentiment Column in Clean News: False
+   - Pipeline Inference: ProsusAI/finbert generates independent probabilities; raw dataset sentiment labels are completely excluded.
+   - Verdict: PASS. Zero leaked sentiment labels enter the feature matrix.
+
+8. MISSING VS GENUINE NEUTRAL SENTIMENT SEPARATION:
+   - No-News Days (news_available = 0): 23,441 stock-days.
+   - Are Sent, PV, AI preserved as NaN on no-news days? True
+   - Neutral-Only Days (headline_count > 0, bullish=0, bearish=0): 488 stock-days.
+   - Are Sent, PV, AI preserved as NaN on neutral-only days? True
+   - Verdict: PASS. Missing sentiment and neutral-only days are rigorously distinguished from genuine 0.0 polarity (bullish == bearish > 0).
+================================================================================

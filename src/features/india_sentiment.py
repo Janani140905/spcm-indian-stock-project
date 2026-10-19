@@ -82,7 +82,7 @@ def run_sentiment_pipeline():
     
     # Load model
     try:
-        finbert = pipeline("text-classification", model="ProsusAI/finbert", device=device_id, return_all_scores=True)
+        finbert = pipeline("text-classification", model="ProsusAI/finbert", device=device_id, top_k=None)
     except Exception as e:
         print(f"Failed to load ProsusAI/finbert. Error: {e}")
         sys.exit(1)
@@ -102,7 +102,9 @@ def run_sentiment_pipeline():
     labels = []
     
     for res in results:
-        # res is a list of dicts like [{'label': 'positive', 'score': 0.9}, ...]
+        # res can be a list of dicts (if top_k=None works) or a single dict (fallback)
+        if isinstance(res, dict):
+            res = [res]
         scores = {d['label']: d['score'] for d in res}
         pos = scores.get('positive', 0.0)
         neg = scores.get('negative', 0.0)
@@ -113,7 +115,7 @@ def run_sentiment_pipeline():
         neu_probs.append(neu)
         
         # Max label
-        max_label = max(scores, key=scores.get)
+        max_label = max(scores, key=scores.get) if scores else "neutral"
         labels.append(max_label)
         
     df_posts['sentiment_label'] = labels

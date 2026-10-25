@@ -3,19 +3,9 @@ import pandas as pd
 import argparse
 from pathlib import Path
 
-# Map internal symbols to Yahoo Finance NS symbols
-STOCK_UNIVERSE = [
-    "RELIANCE",
-    "TCS",
-    "HDFCBANK",
-    "INFY",
-    "ICICIBANK",
-    "HINDUNILVR",
-    "ITC",
-    "SBIN",
-    "BHARTIARTL",
-    "KOTAKBANK"
-]
+from src.utils.data_loader import TARGET_STOCKS, normalize_indian_symbol
+
+STOCK_UNIVERSE = TARGET_STOCKS
 
 def fetch_prices(start_date: str, end_date: str, output_path: str):
     print(f"Fetching data for {len(STOCK_UNIVERSE)} stocks from {start_date} to {end_date}...")

@@ -18,6 +18,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import roc_auc_score
 
 from src.models.baseline_models import MODEL_REGISTRY, scale_to_unit_range
+from src.utils.data_loader import TARGET_STOCKS, normalize_indian_symbol
 
 PRICE_LAGS = (1, 5, 10, 30)
 FORWARD_HORIZON = 10   # trading days ahead, used to construct labels (paper uses "future rise/fall")
@@ -30,6 +31,7 @@ TOP_PCT_LABEL = 0.30   # top 30% of forward returns -> label 1
 def build_price_features(prices: pd.DataFrame, lags=PRICE_LAGS) -> pd.DataFrame:
     """Stock Price Module: base price features + lagged (delayed) versions."""
     df = prices.sort_values(["stock", "date"]).copy()
+    df["stock"] = df["stock"].apply(normalize_indian_symbol)
     df["range_co"] = df["close"] - df["open"]
     df["range_hl"] = df["high"] - df["low"]
     df["ret_1d"] = df.groupby("stock")["close"].pct_change()
@@ -51,6 +53,7 @@ def build_labels(prices: pd.DataFrame, horizon: int = FORWARD_HORIZON, top_pct: 
     top `top_pct` (label=1) vs rest (label=0), matching the paper's "top 30% / bottom 70%".
     """
     df = prices.sort_values(["stock", "date"]).copy()
+    df["stock"] = df["stock"].apply(normalize_indian_symbol)
     df["fwd_ret"] = df.groupby("stock")["close"].shift(-horizon) / df["close"] - 1
 
     def _label_cross_section(g: pd.DataFrame) -> pd.Series:
@@ -71,16 +74,23 @@ def build_fusion_matrix(
 ) -> pd.DataFrame:
     """Merge price features + sentiment indicators (Sent, PV, AI) + Homo + labels into one matrix."""
     m = price_feat.copy()
+    m["stock"] = m["stock"].apply(normalize_indian_symbol)
     if sentiment_ind is not None and not sentiment_ind.empty:
-        m = m.merge(sentiment_ind[["stock", "date", "Sent", "PV", "AI"]], on=["stock", "date"], how="left")
+        s_ind = sentiment_ind.copy()
+        s_ind["stock"] = s_ind["stock"].apply(normalize_indian_symbol)
+        m = m.merge(s_ind[["stock", "date", "Sent", "PV", "AI"]], on=["stock", "date"], how="left")
         for col in ["Sent", "PV", "AI"]:
             m[col] = m[col].fillna(0.0)
             
     if homophily_ind is not None and not homophily_ind.empty and "Homo" in homophily_ind.columns:
-        m = m.merge(homophily_ind[["stock", "date", "Homo"]], on=["stock", "date"], how="left")
+        h_ind = homophily_ind.copy()
+        h_ind["stock"] = h_ind["stock"].apply(normalize_indian_symbol)
+        m = m.merge(h_ind[["stock", "date", "Homo"]], on=["stock", "date"], how="left")
         m["Homo"] = m["Homo"].fillna(0.0)
 
-    m = m.merge(labels, on=["stock", "date"], how="left")
+    l_df = labels.copy()
+    l_df["stock"] = l_df["stock"].apply(normalize_indian_symbol)
+    m = m.merge(l_df, on=["stock", "date"], how="left")
     return m
 
 

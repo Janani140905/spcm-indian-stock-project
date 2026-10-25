@@ -18,7 +18,7 @@ import pandas as pd
 from src.utils.data_loader import (
     DATA_DIR, make_synthetic_dataset, make_indian_synthetic_dataset,
     load_prices, load_posts, load_ff5_factors, load_fundamentals,
-    validate_data_quality
+    validate_data_quality, TARGET_STOCKS, normalize_indian_symbol
 )
 from src.features.sentiment_features import build_sentiment_indicators
 from src.features.homophily import compute_user_stock_day_homophily, aggregate_stock_homophily
@@ -90,6 +90,10 @@ def run_pipeline(use_bert: bool = False, demo: bool = True, india: bool = False,
     
     # Pre-execution Data Quality & Alignment Report
     if india:
+        prices["stock"] = prices["stock"].apply(normalize_indian_symbol)
+        posts_raw["stock"] = posts_raw["stock"].apply(normalize_indian_symbol)
+        prices = prices[prices["stock"].isin(TARGET_STOCKS)]
+        posts_raw = posts_raw[posts_raw["stock"].isin(TARGET_STOCKS)]
         validate_data_quality(prices, posts_raw, ff5)
 
     print("== Step 2: sentiment classification ==")

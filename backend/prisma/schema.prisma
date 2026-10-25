@@ -1,0 +1,88 @@
+// Prisma Schema for SPCM Intelligence Platform
+// Supports PostgreSQL database persistence with timestamps, unique constraints, and indexes
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  watchlists   Watchlist[]
+  preferences  AppPreference[]
+
+  @@map("users")
+}
+
+model Watchlist {
+  id        String          @id @default(uuid())
+  name      String          @default("Default Watchlist")
+  userId    String?
+  user      User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WatchlistItem[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@map("watchlists")
+}
+
+model WatchlistItem {
+  id          String    @id @default(uuid())
+  watchlistId String
+  watchlist   Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  symbol      String    // e.g. "RELIANCE"
+  ticker      String    // e.g. "RELIANCE.NS"
+  targetPrice Float?
+  notes       String?
+  addedAt     DateTime  @default(now())
+
+  @@unique([watchlistId, symbol])
+  @@index([symbol])
+  @@map("watchlist_items")
+}
+
+model PredictionHistory {
+  id                    String   @id @default(uuid())
+  stock                 String   // e.g. "RELIANCE"
+  symbol                String   // e.g. "RELIANCE.NS"
+  closePrice            Float
+  probability           Float    // P(bullish) in [0, 1]
+  rank                  Int      // Cross-sectional rank
+  isRecommended         Boolean  // Top-K member
+  sentimentLabel        String   // "bullish" | "bearish" | "neutral" | "no_news"
+  sentScore             Float?   // FinBERT Sent score
+  pvVolume              Float?   // Price-volume interaction
+  aiIndex               Float?   // Abnormal news index
+  newsCount             Int      @default(0)
+  modelVersion          String   @default("spcm_nn_price_and_sentiment")
+  marketDate            String   // Trading date YYYY-MM-DD
+  observationTimestamp  DateTime
+  inferenceTimestamp    DateTime @default(now())
+  isDemoData            Boolean  @default(false)
+
+  @@index([stock])
+  @@index([inferenceTimestamp])
+  @@map("prediction_history")
+}
+
+model AppPreference {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String   // e.g. "theme", "top_k", "default_view"
+  value     String   // JSON string or literal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
+  @@map("app_preferences")
+}

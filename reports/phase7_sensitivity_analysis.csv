@@ -1,0 +1,39 @@
+sensitivity_type,param_value,model,strategy,cagr,sharpe,mdd,total_costs,alpha_vs_bench
+transaction_cost,0.0 bps,RF,topk_equal,0.277,1.3745,-0.0959,0.0,0.1242
+transaction_cost,0.0 bps,RF,topk_minvar,0.3219,1.6665,-0.1372,0.0,0.169
+transaction_cost,0.0 bps,NN,topk_equal,0.1588,0.5875,-0.1491,0.0,0.0059
+transaction_cost,0.0 bps,RF,equal_weight,0.1528,0.6875,-0.1179,0.0,0.0
+transaction_cost,10.0 bps,RF,topk_equal,0.2611,1.2744,-0.096,50501.39,0.109
+transaction_cost,10.0 bps,RF,topk_minvar,0.3005,1.5317,-0.14,69200.83,0.1484
+transaction_cost,10.0 bps,NN,topk_equal,0.1447,0.5035,-0.1514,42138.94,-0.0075
+transaction_cost,10.0 bps,RF,equal_weight,0.1521,0.6822,-0.118,3165.97,0.0
+transaction_cost,15.0 bps,RF,topk_equal,0.2532,1.2245,-0.0968,74986.9,0.1015
+transaction_cost,15.0 bps,RF,topk_minvar,0.29,1.4647,-0.1413,102420.45,0.1383
+transaction_cost,15.0 bps,NN,topk_equal,0.1377,0.4618,-0.1526,62604.47,-0.0141
+transaction_cost,15.0 bps,RF,equal_weight,0.1518,0.6795,-0.1181,4745.77,0.0
+transaction_cost,25.0 bps,RF,topk_equal,0.2376,1.1253,-0.0993,122475.2,0.0866
+transaction_cost,25.0 bps,RF,topk_minvar,0.2692,1.3314,-0.1441,166209.81,0.1181
+transaction_cost,25.0 bps,NN,topk_equal,0.1238,0.379,-0.155,102363.72,-0.0273
+transaction_cost,25.0 bps,RF,equal_weight,0.151,0.6742,-0.1182,7899.04,0.0
+transaction_cost,50.0 bps,RF,topk_equal,0.1993,0.881,-0.1055,232970.11,0.0501
+transaction_cost,50.0 bps,RF,topk_minvar,0.2184,1.0047,-0.1509,311206.75,0.0692
+transaction_cost,50.0 bps,NN,topk_equal,0.0897,0.1762,-0.1647,195248.25,-0.0595
+transaction_cost,50.0 bps,RF,equal_weight,0.1492,0.6608,-0.1184,15745.09,0.0
+rebalance_freq,5 days,RF,topk_equal,0.2038,0.9067,-0.1138,132270.93,0.0518
+rebalance_freq,5 days,RF,topk_minvar,0.2387,1.1441,-0.1426,186154.64,0.0867
+rebalance_freq,5 days,NN,topk_equal,0.0819,0.1303,-0.1952,123547.75,-0.0702
+rebalance_freq,5 days,RF,equal_weight,0.152,0.6814,-0.1181,6176.36,0.0
+rebalance_freq,10 days,RF,topk_equal,0.2532,1.2245,-0.0968,74986.9,0.1015
+rebalance_freq,10 days,RF,topk_minvar,0.29,1.4647,-0.1413,102420.45,0.1383
+rebalance_freq,10 days,NN,topk_equal,0.1377,0.4618,-0.1526,62604.47,-0.0141
+rebalance_freq,10 days,RF,equal_weight,0.1518,0.6795,-0.1181,4745.77,0.0
+rebalance_freq,20 days,RF,topk_equal,0.2632,1.2779,-0.1161,46030.71,0.112
+rebalance_freq,20 days,RF,topk_minvar,0.2861,1.4262,-0.1412,60696.89,0.1349
+rebalance_freq,20 days,NN,topk_equal,0.1122,0.3076,-0.1527,25880.28,-0.039
+rebalance_freq,20 days,RF,equal_weight,0.1512,0.6755,-0.1179,3712.41,0.0
+execution_timing,open,RF,topk_equal,0.2532,1.2245,-0.0968,74986.9,0.1015
+execution_timing,open,RF,topk_minvar,0.29,1.4647,-0.1413,102420.45,0.1383
+execution_timing,open,NN,topk_equal,0.1377,0.4618,-0.1526,62604.47,-0.0141
+execution_timing,close,RF,topk_equal,0.2613,1.2725,-0.1036,75485.91,0.109
+execution_timing,close,RF,topk_minvar,0.2992,1.5119,-0.1524,101787.18,0.1469
+execution_timing,close,NN,topk_equal,0.1305,0.4195,-0.153,59841.49,-0.0218

@@ -64,3 +64,17 @@ data/processed/
 # =========================
 output/
 outputs/
+# Node.js dependencies
+node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/build/
+backend/dist/
+backend/build/
+
+# Test and tool outputs
+coverage/
+
+# Separate Git repository
+/spcm-indian-stock-project/

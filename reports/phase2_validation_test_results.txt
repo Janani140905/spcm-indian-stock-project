@@ -1,0 +1,37 @@
+================================================================================
+PHASE 2: INDEPENDENT VALIDATION TEST EXECUTION RESULTS
+================================================================================
+Timestamp: 2026-10-19 15:11:39 IST
+Environment: Windows PowerShell / Python 3.11.9
+Test Suite: tests/test_india_pipeline.py
+Framework: Python unittest
+
+TEST RUN OUTPUT:
+--------------------------------------------------------------------------------
+test_imputer_and_scaler_isolation (tests.test_india_pipeline.TestIndianPipelineAudit.test_imputer_and_scaler_isolation)
+Verify imputer and scaler fitted on train do not leak test distributions. ... ok
+
+test_label_cross_section_top_30_percentile (tests.test_india_pipeline.TestIndianPipelineAudit.test_label_cross_section_top_30_percentile)
+Verify labels are computed cross-sectionally per date for top 30%. ... ok
+
+test_label_preserves_nan_for_missing_forward_returns (tests.test_india_pipeline.TestIndianPipelineAudit.test_label_preserves_nan_for_missing_forward_returns)
+Verify that individual stocks with NaN fwd_ret retain NaN label, not 0.0. ... ok
+
+test_sentiment_next_trading_day_alignment (tests.test_india_pipeline.TestIndianPipelineAudit.test_sentiment_next_trading_day_alignment)
+Verify calendar day k news maps strictly to next trading day t >= k + 1. ... ok
+
+test_temporal_purge_boundary (tests.test_india_pipeline.TestIndianPipelineAudit.test_temporal_purge_boundary)
+Verify that a 10-day purge prevents forward returns from crossing train/test boundary. ... ok
+
+--------------------------------------------------------------------------------
+Ran 5 tests in 0.104s
+
+RESULT: OK (5 passed, 0 failed, 0 errors, 0 skipped)
+
+VERIFIED CRITICAL ASSERTIONS:
+1. Cross-sectional ranking strictly isolates each trading date and selects top 30%.
+2. Missing or delisted future prices explicitly result in NaN labels rather than default 0.0.
+3. News published on calendar day k is shifted forward to trading day t >= k + 1, eliminating same-day announcement leakage.
+4. An exact 10-trading-day purge window at each fold boundary guarantees that training label realization occurs strictly before the test start date.
+5. SimpleImputer and MinMaxScaler fitted strictly on training data do not absorb or reflect test distributions.
+================================================================================

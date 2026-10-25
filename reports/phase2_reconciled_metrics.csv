@@ -1,0 +1,4 @@
+model,recalc_mean_auc,reported_mean_auc,recalc_median_auc,reported_median_auc,recalc_pooled_auc,reported_pooled_auc,recalc_mean_prec_at_3,reported_mean_prec_at_3,recalc_cum_gross_pct,reported_cum_gross_pct,recalc_cum_net_pct,reported_cum_net_pct,recalc_ann_net_pct,reported_ann_net_pct,recalc_vol_net_pct,reported_vol_net_pct,recalc_sharpe,reported_sharpe,recalc_mdd_pct,reported_mdd_pct,recalc_cum_bench_pct,reported_cum_bench_pct
+KNN,0.4996,0.4996,0.4995,0.4995,0.4991,0.4991,0.298,0.298,188.23,188.23,104.4,104.4,9.53,9.53,18.31,18.31,0.52,0.52,-29.07,-29.07,138.86,138.86
+RF,0.4952,0.4952,0.4967,0.4968,0.4951,0.4951,0.2932,0.2932,152.01,152.01,106.14,106.14,9.64,9.64,18.95,18.95,0.51,0.51,-29.97,-29.97,138.86,138.86
+NN,0.5137,0.5137,0.5099,0.5099,0.5116,0.5116,0.3138,0.3138,177.81,177.81,121.38,121.38,10.64,10.64,21.35,21.35,0.5,0.5,-31.39,-31.39,138.86,138.86

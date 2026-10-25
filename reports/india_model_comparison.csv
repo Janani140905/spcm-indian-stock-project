@@ -1,0 +1,4 @@
+model,mean_auc,median_auc,std_auc,min_auc,max_auc,folds_gt_50,folds_gt_55,pooled_oos_auc,mean_accuracy,mean_precision,mean_recall,mean_f1,mean_precision_at_3,strat_cum_return_gross,strat_cum_return_net,strat_ann_return_net,strat_ann_volatility,strat_sharpe_ratio,strat_max_drawdown,bench_cum_return
+KNN,0.4996,0.4995,0.0087,0.489,0.5127,4/8 (50%),0/8 (0%),0.4991,0.6606,0.2924,0.0903,0.1352,0.298,188.23,104.4,9.53,18.31,0.52,-29.07,138.86
+RF,0.4952,0.4968,0.0269,0.4632,0.5369,4/8 (50%),0/8 (0%),0.4951,0.687,0.1524,0.0209,0.0324,0.2932,152.01,106.14,9.64,18.95,0.51,-29.97,138.86
+NN,0.5137,0.5099,0.0319,0.4722,0.5521,5/8 (62%),1/8 (12%),0.5116,0.6998,0.0625,0.0002,0.0003,0.3138,177.81,121.38,10.64,21.35,0.5,-31.39,138.86

@@ -45,6 +45,30 @@ from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 
+TARGET_STOCKS = [
+    "RELIANCE",
+    "TCS",
+    "HDFCBANK",
+    "INFY",
+    "ICICIBANK",
+    "HINDUNILVR",
+    "ITC",
+    "SBIN",
+    "BHARTIARTL",
+    "KOTAKBANK",
+]
+INDIAN_STOCKS = TARGET_STOCKS
+
+
+def normalize_indian_symbol(symbol: str) -> str:
+    """Normalize NSE/Yahoo ticker symbols like 'RELIANCE.NS' -> 'RELIANCE'."""
+    if pd.isna(symbol):
+        return symbol
+    s = str(symbol).strip().upper()
+    if s.endswith(".NS") or s.endswith(".BO"):
+        s = s.rsplit(".", 1)[0]
+    return s
+
 
 def load_posts(path: str | Path) -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=["post_time"])
@@ -53,6 +77,7 @@ def load_posts(path: str | Path) -> pd.DataFrame:
     missing = required_base - set(df.columns)
     if missing:
         raise ValueError(f"posts file missing critical columns: {missing}")
+    df["stock"] = df["stock"].apply(normalize_indian_symbol)
     return df
 
 
@@ -62,6 +87,8 @@ def load_prices(path: str | Path) -> pd.DataFrame:
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"prices file missing columns: {missing}")
+    
+    df["stock"] = df["stock"].apply(normalize_indian_symbol)
     
     # Validation checks
     if df.duplicated(["stock", "date"]).any():
@@ -73,8 +100,13 @@ def load_prices(path: str | Path) -> pd.DataFrame:
 
 
 def load_ff5_factors(path: str | Path) -> pd.DataFrame:
-    df = pd.read_csv(path, parse_dates=["date"])
-    # Require at least MKT, SMB, HML (allow 3-factor or 4-factor adaptations)
+    p = Path(path)
+    if not p.exists() and p.name == "ff5_factors.csv":
+        alt = p.parent / "ff4_factors.csv"
+        if alt.exists():
+            p = alt
+    df = pd.read_csv(p, parse_dates=["date"])
+    # Require at least MKT, SMB, HML (allow 3-factor, 4-factor IIMA, or 5-factor adaptations)
     required = {"date", "mkt_rf", "smb", "hml", "rf"}
     missing = required - set(df.columns)
     if missing:
@@ -252,9 +284,7 @@ def make_indian_synthetic_dataset(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     dates = pd.bdate_range(start, end)
-    # NIFTY 50 dummy symbols
-    nifty_subset = ["RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "ICICIBANK.NS", "HINDUNILVR.NS", "ITC.NS", "SBIN.NS", "BHARTIARTL.NS", "KOTAKBANK.NS"]
-    stocks = nifty_subset[:n_stocks]
+    stocks = [normalize_indian_symbol(s) for s in TARGET_STOCKS[:n_stocks]]
 
     # ---- prices: basic OHLCV only ----
     price_rows = []

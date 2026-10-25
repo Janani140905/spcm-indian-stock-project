@@ -52,6 +52,7 @@ for col in ['mkt_rf', 'smb', 'hml', 'wml', 'rf']:
     df_f[col] = df_f[col] / 100.0
 
 df_f.to_csv(os.path.join(PROCESSED_DIR, "ff4_factors.csv"), index=False)
+df_f.to_csv(os.path.join(PROCESSED_DIR, "ff5_factors.csv"), index=False)
 log(f"Processed Factors: {rows_before_f} -> {len(df_f)} rows")
 log(f"Factor Date Range: {df_f['date'].min().date()} to {df_f['date'].max().date()}")
 log(f"Factor missing values: {missing_f}")
@@ -69,6 +70,8 @@ if 'Unnamed: 0' in df_p.columns:
 
 df_p = df_p.rename(columns={'timestamp': 'date', 'symbol': 'stock'})
 df_p['date'] = pd.to_datetime(df_p['date'], errors='coerce')
+# Normalize stock symbols (strip whitespace, uppercase, remove .NS/.BO suffixes)
+df_p['stock'] = df_p['stock'].astype(str).str.strip().str.upper().str.replace(r'\.NS$', '', regex=True).str.replace(r'\.BO$', '', regex=True)
 
 unique_prices_stocks = df_p['stock'].unique()
 df_p = df_p[df_p['stock'].isin(TARGET_STOCKS)]
@@ -109,6 +112,8 @@ rows_before_k = len(df_k)
 # Transform columns
 df_k = df_k.rename(columns={'Symbol': 'stock', 'Publish Date': 'post_time', 'Headline': 'text'})
 df_k['post_time'] = pd.to_datetime(df_k['post_time'], errors='coerce')
+# Normalize stock symbols (strip whitespace, uppercase, remove .NS/.BO suffixes)
+df_k['stock'] = df_k['stock'].astype(str).str.strip().str.upper().str.replace(r'\.NS$', '', regex=True).str.replace(r'\.BO$', '', regex=True)
 
 # Check Stock Compatibility
 unique_posts_stocks = df_k['stock'].unique()

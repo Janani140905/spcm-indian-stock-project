@@ -2,9 +2,28 @@ import pandas as pd
 import numpy as np
 import os
 import time
-import torch
-from transformers import pipeline
+try:
+    import torch
+    from transformers import pipeline
+except ImportError:
+    torch = None
+    pipeline = None
 import sys
+
+try:
+    from src.utils.data_loader import TARGET_STOCKS, normalize_indian_symbol
+except ImportError:
+    TARGET_STOCKS = [
+        'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK',
+        'HINDUNILVR', 'ITC', 'SBIN', 'BHARTIARTL', 'KOTAKBANK'
+    ]
+    def normalize_indian_symbol(symbol):
+        if pd.isna(symbol):
+            return symbol
+        s = str(symbol).strip().upper()
+        if s.endswith(".NS") or s.endswith(".BO"):
+            s = s.rsplit(".", 1)[0]
+        return s
 
 PROCESSED_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'processed', 'india'))
 POSTS_CLEAN = os.path.join(PROCESSED_DIR, 'posts_clean.csv')
@@ -12,6 +31,8 @@ NEWS_SENTIMENT = os.path.join(PROCESSED_DIR, 'news_sentiment.csv')
 LOG_FILE = os.path.join(PROCESSED_DIR, 'sentiment_inference_log.txt')
 
 def setup_pipeline():
+    if torch is None or pipeline is None:
+        raise ImportError("torch and transformers are required to run the FinBERT sentiment pipeline.")
     device_id = 0 if torch.cuda.is_available() else -1
     device_name = "CUDA (GPU)" if device_id == 0 else "CPU"
     try:
@@ -62,6 +83,8 @@ def test_run(df_posts):
 def run_resumable_inference():
     print("=== FULL INFERENCE ===")
     df_posts = pd.read_csv(POSTS_CLEAN)
+    df_posts['stock'] = df_posts['stock'].apply(normalize_indian_symbol)
+    df_posts = df_posts[df_posts['stock'].isin(TARGET_STOCKS)]
     total_rows = len(df_posts)
     
     if os.path.exists(NEWS_SENTIMENT):
@@ -191,6 +214,8 @@ def run_validation():
     
 if __name__ == '__main__':
     df_posts = pd.read_csv(POSTS_CLEAN)
+    df_posts['stock'] = df_posts['stock'].apply(normalize_indian_symbol)
+    df_posts = df_posts[df_posts['stock'].isin(TARGET_STOCKS)]
     if test_run(df_posts):
         run_resumable_inference()
         run_validation()

@@ -2,15 +2,32 @@ import pandas as pd
 import numpy as np
 import os
 
-PROCESSED_DIR = r"C:\Users\Admin\Documents\Stock market project\spcm_project\data\processed\india"
-RAW_DIR = r"C:\Users\Admin\Documents\Stock market project\spcm_project\data\raw\india"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROCESSED_DIR = os.path.join(BASE_DIR, "data", "processed", "india")
+RAW_DIR = os.path.join(BASE_DIR, "data", "raw", "india")
+
+# Fallback to absolute machine path if local directory does not exist
+if not os.path.exists(PROCESSED_DIR):
+    alt_processed = r"C:\Users\Admin\Documents\Stock market project\spcm_project\data\processed\india"
+    if os.path.exists(alt_processed):
+        PROCESSED_DIR = alt_processed
+        RAW_DIR = r"C:\Users\Admin\Documents\Stock market project\spcm_project\data\raw\india"
+
 REPORT_PATH = os.path.join(PROCESSED_DIR, "news_cleaning_report.txt")
 CLEAN_POSTS_PATH = os.path.join(PROCESSED_DIR, "posts_clean.csv")
 
 TARGET_STOCKS = [
-    'RELIANCE', 'TCS', 'INFY', 'ICICIBANK', 
+    'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 
     'HINDUNILVR', 'ITC', 'SBIN', 'BHARTIARTL', 'KOTAKBANK'
 ]
+
+def normalize_symbol(symbol):
+    if pd.isna(symbol):
+        return symbol
+    s = str(symbol).strip().upper()
+    if s.endswith(".NS") or s.endswith(".BO"):
+        s = s.rsplit(".", 1)[0]
+    return s
 
 def main():
     report_lines = ["=== NEWS CLEANING REPORT ===\n"]
@@ -23,6 +40,12 @@ def main():
     df_posts = pd.read_csv(os.path.join(PROCESSED_DIR, "posts.csv"))
     df_prices = pd.read_csv(os.path.join(PROCESSED_DIR, "prices.csv"))
     df_prices['date'] = pd.to_datetime(df_prices['date'])
+    
+    # Normalize stock symbols (strip .NS and .BO suffixes, uppercase) and filter to target universe
+    df_posts['stock'] = df_posts['stock'].apply(normalize_symbol)
+    df_prices['stock'] = df_prices['stock'].apply(normalize_symbol)
+    df_posts = df_posts[df_posts['stock'].isin(TARGET_STOCKS)]
+    df_prices = df_prices[df_prices['stock'].isin(TARGET_STOCKS)]
     
     orig_count = len(df_posts)
     
@@ -123,7 +146,7 @@ def main():
     assert df_posts_clean['post_time'].isnull().sum() == 0, "Missing post_time!"
     assert df_posts_clean['text'].isnull().sum() == 0, "Missing text!"
     assert 'Sentiment' not in df_posts_clean.columns, "Leaked Sentiment found!"
-    assert 'HDFCBANK' not in df_posts_clean['stock'].unique(), "HDFCBANK was not excluded!"
+    assert set(df_posts_clean['stock'].unique()).issubset(set(TARGET_STOCKS)), "Found unexpected stocks outside TARGET_STOCKS!"
     print("All validation checks passed.")
 
 if __name__ == '__main__':

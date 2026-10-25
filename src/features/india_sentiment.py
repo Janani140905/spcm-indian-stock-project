@@ -2,9 +2,28 @@ import pandas as pd
 import numpy as np
 import os
 import time
-import torch
-from transformers import pipeline
+try:
+    import torch
+    from transformers import pipeline
+except ImportError:
+    torch = None
+    pipeline = None
 import sys
+
+try:
+    from src.utils.data_loader import TARGET_STOCKS, normalize_indian_symbol
+except ImportError:
+    TARGET_STOCKS = [
+        'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK',
+        'HINDUNILVR', 'ITC', 'SBIN', 'BHARTIARTL', 'KOTAKBANK'
+    ]
+    def normalize_indian_symbol(symbol):
+        if pd.isna(symbol):
+            return symbol
+        s = str(symbol).strip().upper()
+        if s.endswith(".NS") or s.endswith(".BO"):
+            s = s.rsplit(".", 1)[0]
+        return s
 
 PROCESSED_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'processed', 'india'))
 POSTS_CLEAN = os.path.join(PROCESSED_DIR, 'posts_clean.csv')
@@ -66,12 +85,16 @@ def run_sentiment_pipeline():
     
     # 1. Load Cleaned News
     df_posts = pd.read_csv(POSTS_CLEAN)
+    df_posts['stock'] = df_posts['stock'].apply(normalize_indian_symbol)
+    df_posts = df_posts[df_posts['stock'].isin(TARGET_STOCKS)]
     report.append("A. Dataset information")
     report.append(f"- input file: {POSTS_CLEAN}")
     report.append(f"- number of input headlines: {len(df_posts)}")
     report.append("- model used: ProsusAI/finbert")
     
     # 2. FinBERT Inference
+    if torch is None or pipeline is None:
+        raise ImportError("torch and transformers are required to run the FinBERT sentiment pipeline.")
     device_id = 0 if torch.cuda.is_available() else -1
     device_name = "CUDA (GPU)" if device_id == 0 else "CPU"
     report.append(f"- inference device: {device_name}")
@@ -184,6 +207,8 @@ def run_sentiment_pipeline():
     
     # Merge with full trading calendar
     df_prices = pd.read_csv(PRICES_CLEAN)
+    df_prices['stock'] = df_prices['stock'].apply(normalize_indian_symbol)
+    df_prices = df_prices[df_prices['stock'].isin(TARGET_STOCKS)]
     df_prices['date'] = pd.to_datetime(df_prices['date']).dt.date
     price_grid = df_prices[['stock', 'date']].drop_duplicates()
     

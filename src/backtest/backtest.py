@@ -20,6 +20,7 @@ from src.models.spcm import (
     build_price_features, build_labels, build_fusion_matrix, get_feature_columns,
 )
 from src.models.baseline_models import MODEL_REGISTRY, scale_to_unit_range
+from src.utils.data_loader import TARGET_STOCKS, normalize_indian_symbol
 
 TRAIN_WINDOW_DAYS = 182  # ~6 months of trading days, paper: "past six months"
 
@@ -91,6 +92,9 @@ def compute_portfolio_cumulative_return(recs: pd.DataFrame, prices: pd.DataFrame
     Returns a DataFrame (date, portfolio_return, cumulative_return).
     """
     prices = prices.sort_values(["stock", "date"]).copy()
+    prices["stock"] = prices["stock"].apply(normalize_indian_symbol)
+    recs = recs.copy()
+    recs["stock"] = recs["stock"].apply(normalize_indian_symbol)
     px = prices.pivot(index="date", columns="stock", values="close")
     fwd_ret = px.pct_change(hold_days).shift(-hold_days)
 
@@ -110,7 +114,9 @@ def compute_portfolio_cumulative_return(recs: pd.DataFrame, prices: pd.DataFrame
 
 
 def compute_benchmark_cumulative_return(prices: pd.DataFrame, hold_days: int = 10) -> pd.DataFrame:
-    """Equal-weighted-across-universe benchmark, as a stand-in for the CSI300 index."""
+    """Equal-weighted-across-universe benchmark, as a stand-in for the market index."""
+    prices = prices.sort_values(["stock", "date"]).copy()
+    prices["stock"] = prices["stock"].apply(normalize_indian_symbol)
     px = prices.pivot(index="date", columns="stock", values="close")
     index_level = px.mean(axis=1)
     bench_ret = index_level.pct_change(hold_days)

@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 from typing import Sequence
 
+
 from src.utils.indian_market_data import (
     DEFAULT_INDIAN_SYMBOLS,
     normalize_symbol,

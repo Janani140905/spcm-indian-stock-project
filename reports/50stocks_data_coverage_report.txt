@@ -1,0 +1,91 @@
+================================================================================
+SPCM 50-STOCK EXPANDED TRAINING DATASET COVERAGE REPORT
+================================================================================
+Generated: 2026-11-02 18:40:58
+Historical Target Window: 2020-01-01 to 2024-12-31
+Stocks Successfully Included: 50 / 50 (100% Target Met: True)
+Total Daily Observations: 61,850 bars
+
+PER-SECTOR BREAKDOWN:
+--------------------------------------------------------------------------------
+Sector: Banking and Financial Services (6 stocks, 7,422 bars)
+  - HDFCBANK     [HDFCBANK.NS   ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - ICICIBANK    [ICICIBANK.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - KOTAKBANK    [KOTAKBANK.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - SBIN         [SBIN.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - AXISBANK     [AXISBANK.NS   ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - BANKBARODA   [BANKBARODA.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Information Technology (5 stocks, 6,185 bars)
+  - TCS          [TCS.NS        ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - INFY         [INFY.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - WIPRO        [WIPRO.NS      ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - HCLTECH      [HCLTECH.NS    ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - TECHM        [TECHM.NS      ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Pharmaceuticals and Healthcare (5 stocks, 6,185 bars)
+  - SUNPHARMA    [SUNPHARMA.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - DRREDDY      [DRREDDY.NS    ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - CIPLA        [CIPLA.NS      ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - DIVISLAB     [DIVISLAB.NS   ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - APOLLOHOSP   [APOLLOHOSP.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Automobile and Electric Vehicles (5 stocks, 6,185 bars)
+  - MARUTI       [MARUTI.NS     ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - TATAMOTORS   [TMPV.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - M&M          [M&M.NS        ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - BAJAJ-AUTO   [BAJAJ-AUTO.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - EICHERMOT    [EICHERMOT.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Energy and Oil & Gas (5 stocks, 6,185 bars)
+  - RELIANCE     [RELIANCE.NS   ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - ONGC         [ONGC.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - BPCL         [BPCL.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - IOC          [IOC.NS        ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - POWERGRID    [POWERGRID.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: FMCG and Consumer Goods (5 stocks, 6,185 bars)
+  - HINDUNILVR   [HINDUNILVR.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - ITC          [ITC.NS        ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - NESTLEIND    [NESTLEIND.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - BRITANNIA    [BRITANNIA.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - TATACONSUM   [TATACONSUM.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Metals and Mining (4 stocks, 4,948 bars)
+  - TATASTEEL    [TATASTEEL.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - JSWSTEEL     [JSWSTEEL.NS   ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - HINDALCO     [HINDALCO.NS   ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - VEDL         [VEDL.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Telecommunications (2 stocks, 2,474 bars)
+  - BHARTIARTL   [BHARTIARTL.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - IDEA         [IDEA.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Infrastructure and Construction (4 stocks, 4,948 bars)
+  - LT           [LT.NS         ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - ADANIPORTS   [ADANIPORTS.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - ULTRACEMCO   [ULTRACEMCO.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - AMBUJACEM    [AMBUJACEM.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Retail and Consumer Services (3 stocks, 3,711 bars)
+  - TRENT        [TRENT.NS      ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - DMART        [DMART.NS      ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - TITAN        [TITAN.NS      ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Power and Renewable Energy (3 stocks, 3,711 bars)
+  - NTPC         [NTPC.NS       ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - TATAPOWER    [TATAPOWER.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - ADANIGREEN   [ADANIGREEN.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+Sector: Chemicals (3 stocks, 3,711 bars)
+  - PIDILITIND   [PIDILITIND.NS ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - SRF          [SRF.NS        ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+  - DEEPAKNTR    [DEEPAKNTR.NS  ]: 1237 bars (2020-01-01 to 2024-12-30) - INCLUDED
+
+================================================================================
+DATA INTEGRITY CHECKS:
+  1. Duplicate stock-date rows: 0
+  2. Missing/NaN values in OHLCV: {'open': 0, 'high': 0, 'low': 0, 'close': 0, 'volume': 0}
+  3. Inverted price bars (high < low): 0
+  4. Negative volume rows: 0
+================================================================================

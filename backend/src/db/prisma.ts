@@ -42,10 +42,10 @@ export interface PredictionHistoryRecord {
 class InMemoryStore {
   private watchlist: Map<string, WatchlistRecord> = new Map();
   private predictionHistory: PredictionHistoryRecord[] = [];
+  private investorProfile: any = null;
 
   constructor() {
     // Seed default watchlist with 3 core NSE stocks
-    const now = new Date();
     this.addWatchlistItem({
       symbol: "RELIANCE",
       ticker: "RELIANCE.NS",
@@ -124,6 +124,18 @@ class InMemoryStore {
     const limit = options?.limit ?? 50;
     const records = list.slice(offset, offset + limit);
     return { total, records };
+  }
+
+  getProfile(): any {
+    return this.investorProfile;
+  }
+
+  saveProfile(profile: any): any {
+    this.investorProfile = {
+      ...profile,
+      updatedAt: new Date().toISOString(),
+    };
+    return this.investorProfile;
   }
 }
 

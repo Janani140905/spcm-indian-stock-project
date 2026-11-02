@@ -4,6 +4,8 @@ import { env } from "./config/env.js";
 import { initDatabase } from "./db/prisma.js";
 import { healthRouter } from "./routes/health.js";
 import { stocksRouter } from "./routes/stocks.js";
+import { recommendationsRouter } from "./routes/recommendations.js";
+import { profileRouter } from "./routes/profile.js";
 import { predictionsRouter } from "./routes/predictions.js";
 import { newsRouter } from "./routes/news.js";
 import { watchlistRouter } from "./routes/watchlist.js";
@@ -40,6 +42,8 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 // Mount API routes
 app.use("/api/health", healthRouter);
 app.use("/api/stocks", stocksRouter);
+app.use("/api/recommendations", recommendationsRouter);
+app.use("/api/profile", profileRouter);
 app.use("/api/predictions", predictionsRouter);
 app.use("/api/news", newsRouter);
 app.use("/api/watchlist", watchlistRouter);

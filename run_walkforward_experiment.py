@@ -21,6 +21,7 @@ from src.models.spcm import (
     predict_proba,
 )
 
+
 def run_experiment():
     print("=" * 80)
     print("PHASE 1: AUDIT, TRAIN, AND EVALUATE SPCM ON REAL INDIAN HISTORICAL DATA")

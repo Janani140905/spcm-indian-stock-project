@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SystemHealth } from "../types/index.js";
-import { fetchHealth } from "../services/api.js";
+import { SystemHealth, InvestorProfile } from "../types/index.js";
+import { fetchHealth, fetchProfile, saveProfile } from "../services/api.js";
+import { loadStoredProfile, saveStoredProfile, DEFAULT_INVESTOR_PROFILE } from "../services/personalization.js";
 
 export interface ToastMessage {
   id: string;
@@ -21,6 +22,10 @@ interface AppContextType {
   toasts: ToastMessage[];
   addToast: (title: string, message: string, type?: "success" | "error" | "info" | "warning") => void;
   removeToast: (id: string) => void;
+  investorProfile: InvestorProfile | null;
+  setInvestorProfile: (profile: InvestorProfile | null) => void;
+  profileModalOpen: boolean;
+  setProfileModalOpen: (val: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -31,6 +36,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [investorProfile, setInvestorProfileState] = useState<InvestorProfile | null>(() => {
+    return loadStoredProfile() || DEFAULT_INVESTOR_PROFILE;
+  });
+  const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
+
+  const setInvestorProfile = (profile: InvestorProfile | null) => {
+    setInvestorProfileState(profile);
+    if (profile) {
+      saveStoredProfile(profile);
+      saveProfile(profile).catch((err) => {
+        console.warn("Could not persist investor profile to backend:", err);
+      });
+    }
+  };
 
   const addToast = (
     title: string,
@@ -59,6 +78,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     refreshHealth();
+    fetchProfile()
+      .then((p) => {
+        if (p && p.riskTolerance) {
+          setInvestorProfileState(p);
+          saveStoredProfile(p);
+        }
+      })
+      .catch((err) => {
+        // Backend store may be empty or offline; keep local stored profile
+      });
     const interval = setInterval(refreshHealth, 15000);
     return () => clearInterval(interval);
   }, []);
@@ -77,6 +106,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toasts,
         addToast,
         removeToast,
+        investorProfile,
+        setInvestorProfile,
+        profileModalOpen,
+        setProfileModalOpen,
       }}
     >
       {children}

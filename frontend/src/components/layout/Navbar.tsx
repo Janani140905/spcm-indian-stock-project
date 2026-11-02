@@ -7,14 +7,21 @@ import {
   Sliders,
   Database,
   Cpu,
-  Server,
-  AlertTriangle,
+  Compass,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext.js";
-import { Badge } from "../common/Badge.js";
 
 export const Navbar: React.FC = () => {
-  const { demoMode, setDemoMode, setSearchOpen, health, refreshHealth, addToast } = useApp();
+  const {
+    demoMode,
+    setDemoMode,
+    setSearchOpen,
+    health,
+    refreshHealth,
+    addToast,
+    investorProfile,
+    setProfileModalOpen,
+  } = useApp();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const handleRefresh = async () => {
@@ -79,6 +86,23 @@ export const Navbar: React.FC = () => {
 
       {/* Right controls & Service status */}
       <div className="flex items-center gap-3">
+        {/* Investor Profile Trigger Pill */}
+        <button
+          onClick={() => setProfileModalOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-950/70 to-indigo-950/70 border border-violet-500/40 text-xs font-mono text-violet-200 hover:border-teal-400 hover:text-teal-300 transition-all shadow-sm"
+          title="Customize your Risk, Sector & Sentiment Taste for Tailored Stock Picks"
+        >
+          <Compass className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+          <span className="hidden sm:inline font-semibold">
+            {investorProfile
+              ? `Profile: ${investorProfile.riskTolerance.toUpperCase()}`
+              : "Personalize Picks"}
+          </span>
+          <span className="px-1.5 py-0.2 rounded bg-violet-900/60 text-[10px] text-teal-300 border border-violet-700/50">
+            {investorProfile ? `${investorProfile.preferredSectors.length} Sectors` : "Quiz"}
+          </span>
+        </button>
+
         {/* Service health indicators */}
         <div className="hidden xl:flex items-center gap-2 text-xs font-mono">
           <div

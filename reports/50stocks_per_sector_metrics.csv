@@ -1,0 +1,13 @@
+sector,samples,stocks_count,auc,accuracy,positive_rate
+Banking and Financial Services,4368,6,0.5374,0.7122,0.2878
+Automobile and Electric Vehicles,3640,5,0.526,0.6761,0.3239
+Infrastructure and Construction,2912,4,0.5198,0.6817,0.3183
+FMCG and Consumer Goods,3640,5,0.5185,0.7382,0.2618
+Retail and Consumer Services,2184,3,0.5181,0.6712,0.3288
+Chemicals,2184,3,0.5169,0.7454,0.2546
+Metals and Mining,2912,4,0.5148,0.681,0.319
+Power and Renewable Energy,2184,3,0.4922,0.6772,0.3228
+Energy and Oil & Gas,3640,5,0.4907,0.7041,0.2959
+Information Technology,3640,5,0.4878,0.6967,0.3033
+Pharmaceuticals and Healthcare,3640,5,0.468,0.7063,0.2937
+Telecommunications,1456,2,0.4435,0.6937,0.3063

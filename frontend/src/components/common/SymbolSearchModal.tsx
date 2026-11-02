@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, TrendingUp } from "lucide-react";
+import { Search, X, TrendingUp, Layers } from "lucide-react";
 import { useApp } from "../../context/AppContext.js";
-
-const CANONICAL_STOCKS = [
-  { symbol: "RELIANCE", name: "Reliance Industries Ltd", sector: "Energy & Conglomerate" },
-  { symbol: "TCS", name: "Tata Consultancy Services Ltd", sector: "Information Technology" },
-  { symbol: "HDFCBANK", name: "HDFC Bank Ltd", sector: "Banking & Financial Services" },
-  { symbol: "INFY", name: "Infosys Ltd", sector: "Information Technology" },
-  { symbol: "ICICIBANK", name: "ICICI Bank Ltd", sector: "Banking & Financial Services" },
-  { symbol: "HINDUNILVR", name: "Hindustan Unilever Ltd", sector: "Consumer Goods (FMCG)" },
-  { symbol: "ITC", name: "ITC Ltd", sector: "Consumer Goods & Conglomerate" },
-  { symbol: "SBIN", name: "State Bank of India", sector: "Public Sector Banking" },
-  { symbol: "BHARTIARTL", name: "Bharti Airtel Ltd", sector: "Telecommunications" },
-  { symbol: "KOTAKBANK", name: "Kotak Mahindra Bank Ltd", sector: "Banking & Financial Services" },
-];
+import { STOCK_UNIVERSE } from "../../config/stockUniverse.js";
 
 export const SymbolSearchModal: React.FC = () => {
   const { searchOpen, setSearchOpen, setActiveStock } = useApp();
@@ -36,7 +24,7 @@ export const SymbolSearchModal: React.FC = () => {
 
   if (!searchOpen) return null;
 
-  const filtered = CANONICAL_STOCKS.filter(
+  const filtered = STOCK_UNIVERSE.filter(
     (s) =>
       s.symbol.toLowerCase().includes(query.toLowerCase()) ||
       s.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -57,11 +45,11 @@ export const SymbolSearchModal: React.FC = () => {
           <Search className="w-5 h-5 text-teal-400 shrink-0" />
           <input
             type="text"
-            placeholder="Search stock symbol or company name..."
+            placeholder="Search across 50 Indian stocks or 12 sectors (e.g. SUNPHARMA, MARUTI, Pharma)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
-            className="w-full bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
+            className="w-full bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none font-sans"
           />
           <button
             onClick={() => setSearchOpen(false)}
@@ -71,46 +59,55 @@ export const SymbolSearchModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Results */}
-        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-[#18233a]">
-          {filtered.length > 0 ? (
+        {/* Results List */}
+        <div className="max-h-80 overflow-y-auto divide-y divide-[#1b2844]">
+          {filtered.length === 0 ? (
+            <div className="p-6 text-center text-xs text-slate-400 font-mono">
+              No matching Indian stock symbols found for "{query}".
+            </div>
+          ) : (
             filtered.map((stock) => (
               <button
                 key={stock.symbol}
                 onClick={() => handleSelect(stock.symbol)}
-                className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-[#16223b] flex items-center justify-between transition-colors group"
+                className="w-full px-4 py-3 text-left hover:bg-[#16223b] flex items-center justify-between transition-colors group"
               >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-white group-hover:text-teal-300">
-                      {stock.symbol}
-                    </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
-                      NSE
-                    </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 text-xs font-mono font-bold group-hover:bg-teal-500 group-hover:text-black transition-colors">
+                    {stock.symbol.slice(0, 2)}
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5">{stock.name}</div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-white text-xs">
+                        {stock.symbol}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">.NS</span>
+                      {stock.inTrainingUniverse && (
+                        <span className="px-1.5 py-0.2 rounded bg-violet-950 text-violet-300 text-[9px] border border-violet-500/40">
+                          SPCM Benchmark
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate max-w-xs">
+                      {stock.name}
+                    </div>
+                  </div>
                 </div>
+
                 <div className="text-right">
-                  <span className="text-[11px] text-slate-400">{stock.sector}</span>
-                  <div className="flex items-center justify-end gap-1 text-teal-400 text-xs mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span>Analyze</span>
-                    <TrendingUp className="w-3 h-3" />
-                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0b1020] text-slate-300 border border-[#1b2844]">
+                    {stock.sector}
+                  </span>
                 </div>
               </button>
             ))
-          ) : (
-            <div className="p-6 text-center text-xs text-slate-400">
-              No matching Indian stocks found for "{query}".
-            </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-[#1b2844] bg-[#0c1322] flex items-center justify-between text-[11px] font-mono text-slate-400">
-          <span>Supported: 10 Indian Large-Cap NSE Stocks</span>
-          <span>Press ESC to close</span>
+        <div className="px-4 py-2 border-t border-[#1b2844] bg-[#0b1020] flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <span>{filtered.length} of 50 stocks available across 12 sectors</span>
+          <span>ESC to close</span>
         </div>
       </div>
     </div>

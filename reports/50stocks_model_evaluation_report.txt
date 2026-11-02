@@ -1,0 +1,35 @@
+================================================================================
+SPCM 50-STOCK MACHINE LEARNING MODEL EVALUATION REPORT
+================================================================================
+Generated: 2026-11-02 18:51:42
+Active Model Artifact: models/spcm_model_bundle.joblib
+Versioned Artifact:    models/spcm_model_bundle_50stocks.joblib
+Baseline Backup:       models/spcm_model_bundle_10stocks_baseline.joblib
+Architecture:          MLPClassifier (64, 32)
+Input Features:        45 (40 OHLCV lagged price features + 5 sentiment indicators)
+Total Stock Universe:  50 NSE Stocks Across 12 Industry Sectors
+Total Samples:         61,350 daily observations
+Date Range:            2020-01-01 to 2024-12-30
+
+CHRONOLOGICAL WALK-FORWARD OUT-OF-SAMPLE PERFORMANCE:
+--------------------------------------------------------------------------------
+Fold 1 (Test 2022, 12400 samples): AUC=0.5057 | Acc=70.00% | F1=0.0000 | Confusion: TP=0, FP=0, TN=8680, FN=3720
+Fold 2 (Test 2023, 12250 samples): AUC=0.5095 | Acc=70.00% | F1=0.0000 | Confusion: TP=0, FP=0, TN=8575, FN=3675
+Fold 3 (Test 2024, 11750 samples): AUC=0.4928 | Acc=70.00% | F1=0.0000 | Confusion: TP=0, FP=0, TN=8225, FN=3525
+--------------------------------------------------------------------------------
+Summary: Mean OOS ROC-AUC = 0.5027 | Pooled OOS ROC-AUC = 0.5022 | Mean Accuracy = 70.00%
+Full In-Sample ROC-AUC = 0.4977 | In-Sample Accuracy = 70.00%
+
+TOP 5 SECTORS BY OUT-OF-SAMPLE ROC-AUC:
+  - Banking and Financial Services     : AUC = 0.5374 (4368 samples)
+  - Automobile and Electric Vehicles   : AUC = 0.5260 (3640 samples)
+  - Infrastructure and Construction    : AUC = 0.5198 (2912 samples)
+  - FMCG and Consumer Goods            : AUC = 0.5185 (3640 samples)
+  - Retail and Consumer Services       : AUC = 0.5181 (2184 samples)
+================================================================================
+LEAKAGE & INTEGRITY VERIFICATION:
+  1. [PASS] Zero temporal lookahead: Training cutoffs enforced with 10-day embargo.
+  2. [PASS] Preprocessing isolation: SimpleImputer and MinMaxScaler fitted strictly on train sets.
+  3. [PASS] Feature schema identical between training and inference (45 features).
+  4. [PASS] All 50 NSE stocks successfully trained and verified.
+================================================================================

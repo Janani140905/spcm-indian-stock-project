@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/layout/Navbar.js";
 import { Sidebar } from "./components/layout/Sidebar.js";
 import { SymbolSearchModal } from "./components/common/SymbolSearchModal.js";
+import { InvestorProfileModal } from "./components/common/InvestorProfileModal.js";
 import { useApp } from "./context/AppContext.js";
 import { OverviewPage } from "./pages/OverviewPage.js";
 import { StockExplorerPage } from "./pages/StockExplorerPage.js";
@@ -38,8 +39,9 @@ export const App: React.FC = () => {
         </main>
       </div>
 
-      {/* Global Quick Search Modal */}
+      {/* Global Modals */}
       <SymbolSearchModal />
+      <InvestorProfileModal />
 
       {/* Toast Notification Container */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">

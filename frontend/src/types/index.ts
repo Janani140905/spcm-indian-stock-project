@@ -4,6 +4,9 @@ export interface Stock {
   name: string;
   sector: string;
   exchange: string;
+  inTrainingUniverse?: boolean;
+  marketCapCategory?: string;
+  description?: string;
 }
 
 export interface Candle {
@@ -26,7 +29,46 @@ export interface StockHistory {
   change: number;
   change_pct: number;
   feed_status: string;
+  timestamp?: string;
+  in_training_universe?: boolean;
   candles: Candle[];
+  indicators?: {
+    sma20: number | null;
+    sma50: number | null;
+    volatility30d: number | null;
+    momentum10d: number | null;
+  };
+}
+
+export interface StockQuote {
+  symbol: string;
+  ticker: string;
+  name: string;
+  sector: string;
+  exchange: "NSE";
+  currentPrice: number;
+  previousClose: number;
+  change: number;
+  changePct: number;
+  open: number;
+  high: number;
+  low: number;
+  volume: number;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
+  timestamp: string;
+  marketTimeIST: string;
+  feedStatus: "DELAYED_15M" | "HISTORICAL_EOD";
+  inTrainingUniverse: boolean;
+  marketCapCategory: "Large Cap" | "Mid Cap";
+  description: string;
+  technicalIndicators: {
+    sma20: number | null;
+    sma50: number | null;
+    volatility30d: number | null;
+    momentum10d: number | null;
+    rsi14: number | null;
+  };
 }
 
 export interface Prediction {
@@ -109,7 +151,6 @@ export interface NewsResponse {
 
 export interface WatchlistItem {
   id: string;
-  watchlistId: string;
   symbol: string;
   ticker: string;
   targetPrice: number | null;
@@ -138,7 +179,7 @@ export interface PredictionHistoryRecord {
 }
 
 export interface SystemHealth {
-  status: "healthy" | "degraded" | "down";
+  status: "healthy" | "degraded";
   server: string;
   timestamp: string;
   services: {
@@ -171,4 +212,72 @@ export interface SystemHealth {
     };
   };
   canonical_universe: string[];
+}
+
+// Profiling Types
+export type RiskTolerance = "conservative" | "moderate" | "aggressive";
+export type InvestmentHorizon = "short_term" | "medium_term" | "long_term";
+export type InvestmentObjective = "capital_growth" | "wealth_preservation" | "dividend_income" | "balanced";
+export type BudgetRange = "under_25k" | "25k_to_100k" | "100k_to_500k" | "above_500k";
+export type SentimentPreference = "high_sentiment" | "balanced" | "pure_price";
+
+export interface InvestorProfile {
+  riskTolerance: RiskTolerance;
+  preferredSectors: string[];
+  investmentHorizon: InvestmentHorizon;
+  investmentObjective: InvestmentObjective;
+  budgetRange: BudgetRange;
+  sentimentPreference: SentimentPreference;
+  updatedAt: string;
+}
+
+export interface RecommendationItem {
+  symbol: string;
+  ticker: string;
+  name: string;
+  sector: string;
+  exchange: "NSE";
+  currentPrice: number;
+  change: number;
+  changePct: number;
+  marketCapCategory: "Large Cap" | "Mid Cap";
+  suitabilityScore: number;
+  rank: number;
+  isTopPick: boolean;
+  matchReasons: string[];
+  riskIndicators: string[];
+  factorScores: {
+    sectorMatch: number;
+    riskFit: number;
+    objectiveFit: number;
+    horizonFit: number;
+    sentimentFit: number;
+    spcmModelFit: number;
+  };
+  spcmModel: {
+    status: "AVAILABLE" | "TRAINING_REQUIRED";
+    probability: number | null;
+    rank: number | null;
+    sentimentLabel: string | null;
+    note: string;
+  };
+  marketDataTimestamp: string;
+}
+
+export interface RecommendationResponse {
+  totalAnalyzed: number;
+  topK: number;
+  profile: InvestorProfile;
+  recommendations: RecommendationItem[];
+  sectorDistribution: Record<string, number>;
+  modelTrainingNotice: string;
+  disclaimer: string;
+  timestamp: string;
+}
+
+export interface PersonalizedPrediction extends Prediction {
+  personalizedScore: number;
+  personalizedRank: number;
+  matchReasons: string[];
+  sector: string;
 }

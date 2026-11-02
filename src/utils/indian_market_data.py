@@ -55,6 +55,13 @@ NORMALIZED_COLUMNS = [
     "volume",
 ]
 
+# Ticker symbol overrides for Yahoo Finance provider
+# e.g. TATAMOTORS demerger in 2024 maps continuous passenger vehicles to TMPV.NS on Yahoo Finance
+YFINANCE_TICKER_OVERRIDES = {
+    "TATAMOTORS": "TMPV.NS",
+    "TATAMOTORS.NS": "TMPV.NS",
+}
+
 
 class FeedType(str, Enum):
     LIVE = "live"
@@ -283,11 +290,12 @@ class IndianMarketDataFetcher:
             ProviderConnectionError: If network or provider fails.
         """
         formatted_sym = normalize_symbol(symbol, self.default_exchange)
+        query_sym = YFINANCE_TICKER_OVERRIDES.get(formatted_sym, formatted_sym)
         try:
-            ticker = yf.Ticker(formatted_sym)
+            ticker = yf.Ticker(query_sym)
             raw_df = ticker.history(period=period, interval=interval, timeout=self.timeout)
         except Exception as exc:
-            msg = f"Network or provider error fetching '{formatted_sym}': {exc}"
+            msg = f"Network or provider error fetching '{query_sym}': {exc}"
             logger.error(msg)
             raise ProviderConnectionError(msg) from exc
 
@@ -295,7 +303,7 @@ class IndianMarketDataFetcher:
             # Fallback to yf.download in case ticker.history hit a transient endpoint issue
             try:
                 raw_df = yf.download(
-                    formatted_sym,
+                    query_sym,
                     period=period,
                     interval=interval,
                     progress=False,
@@ -303,7 +311,7 @@ class IndianMarketDataFetcher:
                     timeout=self.timeout
                 )
             except Exception as exc:
-                msg = f"Fallback download failed for '{formatted_sym}': {exc}"
+                msg = f"Fallback download failed for '{query_sym}': {exc}"
                 logger.error(msg)
                 raise ProviderConnectionError(msg) from exc
 

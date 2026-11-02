@@ -1,0 +1,51 @@
+symbol,sector,samples,auc,accuracy,is_benchmark_10
+HINDUNILVR,FMCG and Consumer Goods,728,0.6265,0.7651,True
+TITAN,Retail and Consumer Services,728,0.6078,0.7418,False
+SRF,Chemicals,728,0.6054,0.7473,False
+WIPRO,Information Technology,728,0.5982,0.7157,False
+HDFCBANK,Banking and Financial Services,728,0.5952,0.7486,True
+MARUTI,Automobile and Electric Vehicles,728,0.5937,0.7404,False
+ULTRACEMCO,Infrastructure and Construction,728,0.5842,0.7157,False
+KOTAKBANK,Banking and Financial Services,728,0.5721,0.7995,True
+ADANIGREEN,Power and Renewable Energy,728,0.5699,0.6827,False
+VEDL,Metals and Mining,728,0.5697,0.625,False
+RELIANCE,Energy and Oil & Gas,728,0.5673,0.8049,True
+BAJAJ-AUTO,Automobile and Electric Vehicles,728,0.5611,0.6401,False
+AXISBANK,Banking and Financial Services,728,0.5578,0.7005,False
+ADANIPORTS,Infrastructure and Construction,728,0.544,0.6868,False
+BRITANNIA,FMCG and Consumer Goods,728,0.5434,0.7143,False
+EICHERMOT,Automobile and Electric Vehicles,728,0.5414,0.6813,False
+HINDALCO,Metals and Mining,728,0.5348,0.6332,False
+JSWSTEEL,Metals and Mining,728,0.5333,0.7266,False
+ICICIBANK,Banking and Financial Services,728,0.5327,0.7308,True
+BPCL,Energy and Oil & Gas,728,0.5315,0.7335,False
+SBIN,Banking and Financial Services,728,0.5231,0.6978,True
+PIDILITIND,Chemicals,728,0.5093,0.7995,False
+LT,Infrastructure and Construction,728,0.506,0.6538,False
+M&M,Automobile and Electric Vehicles,728,0.5026,0.5989,False
+TATAPOWER,Power and Renewable Energy,728,0.4954,0.7047,False
+ITC,FMCG and Consumer Goods,728,0.4944,0.6992,True
+DEEPAKNTR,Chemicals,728,0.4916,0.6896,False
+BHARTIARTL,Telecommunications,728,0.4908,0.6717,True
+TATACONSUM,FMCG and Consumer Goods,728,0.4898,0.7473,False
+DIVISLAB,Pharmaceuticals and Healthcare,728,0.4858,0.6978,False
+DMART,Retail and Consumer Services,728,0.4791,0.7445,False
+TCS,Information Technology,728,0.4741,0.7349,True
+AMBUJACEM,Infrastructure and Construction,728,0.4728,0.6703,False
+CIPLA,Pharmaceuticals and Healthcare,728,0.4722,0.7445,False
+POWERGRID,Energy and Oil & Gas,728,0.4706,0.6456,False
+BANKBARODA,Banking and Financial Services,728,0.4694,0.5962,False
+IOC,Energy and Oil & Gas,728,0.4662,0.6909,False
+SUNPHARMA,Pharmaceuticals and Healthcare,728,0.4657,0.6896,False
+APOLLOHOSP,Pharmaceuticals and Healthcare,728,0.4647,0.6868,False
+TATASTEEL,Metals and Mining,728,0.4628,0.739,False
+NESTLEIND,FMCG and Consumer Goods,728,0.4554,0.7651,False
+DRREDDY,Pharmaceuticals and Healthcare,728,0.4517,0.7129,False
+INFY,Information Technology,728,0.4464,0.6896,True
+HCLTECH,Information Technology,728,0.4334,0.6332,False
+ONGC,Energy and Oil & Gas,728,0.4274,0.6456,False
+IDEA,Telecommunications,728,0.4218,0.7157,False
+TRENT,Retail and Consumer Services,728,0.4133,0.5275,False
+NTPC,Power and Renewable Energy,728,0.4131,0.6442,False
+TECHM,Information Technology,728,0.3914,0.7102,False
+TATAMOTORS,Automobile and Electric Vehicles,728,0.3767,0.7198,False

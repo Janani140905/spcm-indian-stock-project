@@ -21,15 +21,16 @@ class TestFastAPIAdapter(unittest.TestCase):
         data = response.json()
         self.assertIn("status", data)
         self.assertEqual(data["service"], "spcm_python_ml_engine")
-        self.assertEqual(data["supported_stocks_count"], 10)
+        self.assertEqual(data["supported_stocks_count"], 50)
         self.assertEqual(data["features_count"], 45)
-        self.assertEqual(len(data["target_universe"]), 10)
+        self.assertEqual(len(data["target_universe"]), 50)
+        self.assertEqual(len(data["benchmark_stocks"]), 10)
 
     def test_stocks_endpoint(self):
         response = self.client.get("/api/stocks")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["count"], 10)
+        self.assertEqual(data["count"], 50)
         symbols = [s["symbol"] for s in data["stocks"]]
         self.assertIn("RELIANCE", symbols)
         self.assertIn("TCS", symbols)
@@ -41,8 +42,8 @@ class TestFastAPIAdapter(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_predict_endpoint_validation(self):
-        # Invalid top_k > 10
-        response = self.client.post("/api/predict", json={"top_k": 20})
+        # Invalid top_k > 50
+        response = self.client.post("/api/predict", json={"top_k": 100})
         self.assertEqual(response.status_code, 422)
 
     @patch("src.inference.fastapi_adapter.get_pipeline")

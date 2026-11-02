@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
@@ -35,6 +35,11 @@ from src.utils.indian_market_data import (
 )
 from src.utils.indian_news_fetcher import IST_TIMEZONE, IndianNewsFetcher
 from src.features.news_sentiment_inference import score_articles
+from src.utils.stock_universe import (
+    FULL_STOCK_CATALOG,
+    SECTOR_CATALOG,
+    ORIGINAL_BENCHMARK_10,
+)
 
 logger = logging.getLogger("spcm_fastapi")
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%H:%M:%S")
@@ -63,10 +68,8 @@ def get_pipeline() -> Optional[SPCMInferencePipeline]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: preload pipeline
     get_pipeline()
     yield
-    # Shutdown logic if any
     pass
 
 
@@ -77,7 +80,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Allow local Express backend and frontend origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:5000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5000", "http://127.0.0.1:5173"],
@@ -86,26 +88,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Canonical 10-stock universe metadata
-STOCK_CATALOG = [
-    {"symbol": "RELIANCE", "ticker": "RELIANCE.NS", "name": "Reliance Industries Ltd", "sector": "Energy & Conglomerate", "exchange": "NSE"},
-    {"symbol": "TCS", "ticker": "TCS.NS", "name": "Tata Consultancy Services Ltd", "sector": "Information Technology", "exchange": "NSE"},
-    {"symbol": "HDFCBANK", "ticker": "HDFCBANK.NS", "name": "HDFC Bank Ltd", "sector": "Banking & Financial Services", "exchange": "NSE"},
-    {"symbol": "INFY", "ticker": "INFY.NS", "name": "Infosys Ltd", "sector": "Information Technology", "exchange": "NSE"},
-    {"symbol": "ICICIBANK", "ticker": "ICICIBANK.NS", "name": "ICICI Bank Ltd", "sector": "Banking & Financial Services", "exchange": "NSE"},
-    {"symbol": "HINDUNILVR", "ticker": "HINDUNILVR.NS", "name": "Hindustan Unilever Ltd", "sector": "Consumer Goods (FMCG)", "exchange": "NSE"},
-    {"symbol": "ITC", "ticker": "ITC.NS", "name": "ITC Ltd", "sector": "Consumer Goods & Conglomerate", "exchange": "NSE"},
-    {"symbol": "SBIN", "ticker": "SBIN.NS", "name": "State Bank of India", "sector": "Public Sector Banking", "exchange": "NSE"},
-    {"symbol": "BHARTIARTL", "ticker": "BHARTIARTL.NS", "name": "Bharti Airtel Ltd", "sector": "Telecommunications", "exchange": "NSE"},
-    {"symbol": "KOTAKBANK", "ticker": "KOTAKBANK.NS", "name": "Kotak Mahindra Bank Ltd", "sector": "Banking & Financial Services", "exchange": "NSE"},
-]
+STOCK_CATALOG = FULL_STOCK_CATALOG
 
-
-# --- Request & Response Models ---
 
 class PredictRequest(BaseModel):
     symbols: Optional[List[str]] = Field(default=None, description="List of stock tickers (e.g. ['RELIANCE', 'TCS'])")
-    top_k: int = Field(default=3, ge=1, le=10, description="Top K recommendations")
+    top_k: int = Field(default=3, ge=1, le=50, description="Top K recommendations")
     warmup_period: str = Field(default="60d", description="Historical price warm-up window")
 
 
@@ -137,11 +125,8 @@ class PredictResponse(BaseModel):
     news_metadata: dict[str, Any]
 
 
-# --- Endpoints ---
-
 @app.get("/health")
 def health():
-    """Health check reporting Python ML service, model bundle, and metadata."""
     pipeline = get_pipeline()
     is_loaded = pipeline is not None
     meta = pipeline.bundle.metadata if is_loaded and pipeline else {}
@@ -150,13 +135,15 @@ def health():
         "service": "spcm_python_ml_engine",
         "model_loaded": is_loaded,
         "model_path": str(Path(DEFAULT_MODEL_PATH).resolve()),
-        "model_name": meta.get("model_name", "spcm_nn_price_and_sentiment"),
+        "model_name": meta.get("model_name", "spcm_nn_50stocks_multimodal"),
+        "model_version": meta.get("model_version", "2.0-50stocks"),
         "classifier": meta.get("classifier", "nn"),
         "features_count": len(pipeline.bundle.feature_cols) if is_loaded and pipeline else 45,
         "training_window": f"{meta.get('start_date')} to {meta.get('end_date')}",
         "in_sample_auc": meta.get("in_sample_auc"),
         "supported_stocks_count": len(STOCK_CATALOG),
         "target_universe": [s["symbol"] for s in STOCK_CATALOG],
+        "benchmark_stocks": ORIGINAL_BENCHMARK_10,
         "target_definition": "Top 30% of cross-sectional 10-day forward returns (binary classification)",
         "feed_classification": "HISTORICAL / DELAYED (Yahoo Finance NSE, ~15m delay during market hours)",
         "timestamp": datetime.now(tz=IST_TIMEZONE).isoformat(),
@@ -164,11 +151,51 @@ def health():
 
 
 @app.get("/api/stocks")
-def get_stocks():
-    """Returns canonical 10 Indian stock catalog with sector and exchange info."""
+def get_stocks(sector: Optional[str] = None, q: Optional[str] = None):
+    stocks = STOCK_CATALOG
+    if sector:
+        stocks = [s for s in stocks if s["sector"].lower() == sector.lower()]
+    if q:
+        q_lower = q.lower()
+        stocks = [s for s in stocks if q_lower in s["symbol"].lower() or q_lower in s["name"].lower()]
     return {
-        "count": len(STOCK_CATALOG),
-        "stocks": STOCK_CATALOG,
+        "count": len(stocks),
+        "total_universe": len(STOCK_CATALOG),
+        "stocks": stocks,
+    }
+
+
+@app.get("/api/stocks/sectors")
+def get_sectors():
+    sector_summary = []
+    for sec in SECTOR_CATALOG:
+        sec_name = sec["name"]
+        matching_stocks = [s for s in STOCK_CATALOG if s["sector"] == sec_name]
+        sector_summary.append({
+            "name": sec_name,
+            "short_code": sec["shortCode"],
+            "icon": sec["icon"],
+            "stock_count": len(matching_stocks),
+            "symbols": [s["symbol"] for s in matching_stocks],
+            "trained_stocks_count": sum(1 for s in matching_stocks if s.get("in_training_universe")),
+        })
+    return {
+        "count": len(sector_summary),
+        "sectors": sector_summary,
+    }
+
+
+@app.get("/api/stocks/{symbol}")
+def get_stock_detail(symbol: str):
+    clean_sym = symbol.upper().replace(".NS", "")
+    matching = [s for s in STOCK_CATALOG if s["symbol"] == clean_sym]
+    if not matching:
+        raise HTTPException(status_code=404, detail=f"Stock '{symbol}' not found in universe.")
+    stock_info = matching[0]
+    return {
+        "stock": stock_info,
+        "in_spcm_model_training_universe": stock_info.get("in_training_universe", False),
+        "timestamp": datetime.now(tz=IST_TIMEZONE).isoformat(),
     }
 
 
@@ -177,18 +204,14 @@ def get_stock_history(
     symbol: str,
     period: str = Query(default="6mo", pattern="^(1mo|3mo|6mo|1y|2y|5y)$")
 ):
-    """
-    Fetches genuine historical OHLCV chart series for a given Indian stock ticker.
-    """
     clean_sym = symbol.upper().replace(".NS", "")
     matching = [s for s in STOCK_CATALOG if s["symbol"] == clean_sym]
     if not matching:
-        raise HTTPException(status_code=404, detail=f"Stock '{symbol}' not supported. Supported: {[s['symbol'] for s in STOCK_CATALOG]}")
+        raise HTTPException(status_code=404, detail=f"Stock '{symbol}' not found.")
 
     exchange_ticker = f"{clean_sym}.NS"
     fetcher = IndianMarketDataFetcher()
     try:
-        # Fetch OHLCV history
         df = fetcher.fetch_symbol(exchange_ticker, period=period, interval="1d")
         if df.empty:
             raise HTTPException(status_code=404, detail=f"No market data records returned for {exchange_ticker}")
@@ -225,68 +248,29 @@ def get_stock_history(
             "candles": records,
         }
     except Exception as exc:
-        logger.warning(f"Live market fetch failed for {symbol} ({exc}); attempting local price dataset fallback...")
-        prices_csv = Path("data/processed/india/prices.csv")
-        if prices_csv.exists():
-            try:
-                local_df = pd.read_csv(prices_csv)
-                local_df["date"] = pd.to_datetime(local_df["date"])
-                stock_df = local_df[local_df["stock"] == clean_sym].sort_values("date")
-                if not stock_df.empty:
-                    period_days = {"1mo": 22, "3mo": 66, "6mo": 126, "1y": 252, "2y": 504, "5y": 1260}.get(period, 126)
-                    stock_df = stock_df.tail(period_days)
-                    records = []
-                    for _, row in stock_df.iterrows():
-                        d_str = row["date"].strftime("%Y-%m-%d") if hasattr(row["date"], "strftime") else str(row["date"])[:10]
-                        records.append({
-                            "date": d_str,
-                            "open": round(float(row["open"]), 2),
-                            "high": round(float(row["high"]), 2),
-                            "low": round(float(row["low"]), 2),
-                            "close": round(float(row["close"]), 2),
-                            "volume": int(row["volume"]) if not pd.isna(row["volume"]) else 0,
-                        })
-                    latest_close = records[-1]["close"] if records else 0.0
-                    prev_close = records[-2]["close"] if len(records) >= 2 else latest_close
-                    change = round(latest_close - prev_close, 2)
-                    change_pct = round((change / prev_close) * 100, 2) if prev_close > 0 else 0.0
-                    return {
-                        "symbol": clean_sym,
-                        "ticker": exchange_ticker,
-                        "company_name": matching[0]["name"],
-                        "sector": matching[0]["sector"],
-                        "period": period,
-                        "record_count": len(records),
-                        "latest_price": latest_close,
-                        "change": change,
-                        "change_pct": change_pct,
-                        "feed_status": "HISTORICAL_LOCAL_CACHE",
-                        "candles": records,
-                    }
-            except Exception as cache_exc:
-                logger.error(f"Fallback to local cache failed: {cache_exc}")
         logger.error(f"Error fetching history for {symbol}: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch market data for {symbol}: {str(exc)}")
 
 
 @app.post("/api/predict", response_model=PredictResponse)
 def run_prediction(req: PredictRequest):
-    """
-    Executes end-to-end SPCM inference using the frozen MLP model bundle,
-    real-time/delayed market price features, and aligned financial news sentiment.
-    """
     pipeline = get_pipeline()
     if pipeline is None:
         raise HTTPException(
             status_code=503,
-            detail="SPCM Model Artifact Bundle is not loaded or missing. Run 'py -3.11 -m src.models.train_and_export_spcm' first."
+            detail="SPCM Model Artifact Bundle is not loaded or missing."
         )
 
+    valid_symbols = {s["symbol"] for s in STOCK_CATALOG}
     symbols = req.symbols
     if not symbols:
         symbols = [s["symbol"] for s in STOCK_CATALOG]
     else:
-        symbols = [s.upper().replace(".NS", "").strip() for s in symbols]
+        # Filter to model training universe (all 50 NSE stocks)
+        clean_req = [s.upper().replace(".NS", "").strip() for s in symbols]
+        symbols = [s for s in clean_req if s in valid_symbols]
+        if not symbols:
+            symbols = [s["symbol"] for s in STOCK_CATALOG]
 
     try:
         result: SPCMInferenceResult = pipeline.predict(
@@ -332,7 +316,7 @@ def run_prediction(req: PredictRequest):
             is_demo_data=False,
             inference_timestamp=result.inference_timestamp.isoformat(),
             top_k=result.top_k,
-            recommended_stocks=result.get_recommended_stocks(),
+            recommended_stocks=[p.stock for p in pred_items if p.is_recommended],
             predictions=pred_items,
             model_metadata=result.model_metadata,
             market_metadata={
@@ -355,15 +339,17 @@ def run_prediction(req: PredictRequest):
                 "total_articles_deduplicated": n_meta.total_articles_deduplicated,
                 "rate_limit_info": n_meta.rate_limit_info,
                 "notes": n_meta.notes,
+                "sentiment_method": getattr(n_meta, "sentiment_method", "FinBERT / Lexicon Fallback"),
             },
         )
-    except InsufficientHistoryError as exc:
-        raise HTTPException(status_code=422, detail=f"Insufficient history: {str(exc)}")
+    except HTTPException:
+        raise
     except InferenceFeatureError as exc:
-        raise HTTPException(status_code=502, detail=f"Inference feature generation failed: {str(exc)}")
+        logger.error(f"Market data feature failure: {exc}")
+        raise HTTPException(status_code=502, detail=str(exc))
     except Exception as exc:
-        logger.error(f"Inference execution failed: {exc}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Inference error: {str(exc)}")
+        logger.error(f"Error during SPCM inference: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Inference pipeline failed: {str(exc)}")
 
 
 @app.get("/api/news")
@@ -371,15 +357,11 @@ def get_news(
     symbols: Optional[str] = Query(default=None, description="Comma-separated stock symbols"),
     limit: int = Query(default=30, ge=1, le=100)
 ):
-    """
-    Fetches real Indian financial news articles for specified stocks,
-    scores their sentiment with FinBERT / Lexicon fallback, and returns structured cards.
-    """
     fetcher = IndianNewsFetcher()
     if symbols:
         target_symbols = [s.strip().upper() for s in symbols.split(",") if s.strip()]
     else:
-        target_symbols = [s["symbol"] for s in STOCK_CATALOG]
+        target_symbols = [s["symbol"] for s in STOCK_CATALOG[:10]]
 
     try:
         fetch_res = fetcher.fetch_news_for_symbols(target_symbols, max_articles_per_symbol=5)

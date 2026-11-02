@@ -102,7 +102,7 @@ class PythonMlService {
   constructor() {
     this.client = axios.create({
       baseURL: env.PYTHON_ML_SERVICE_URL,
-      timeout: 30000, // 30s timeout for live market/news fetching
+      timeout: 60000, // 60s timeout for live market/news fetching across expanded universe
       headers: {
         "Content-Type": "application/json",
       },

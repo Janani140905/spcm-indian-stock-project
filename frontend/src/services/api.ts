@@ -6,6 +6,9 @@ import {
   WatchlistItem,
   PredictionHistoryRecord,
   SystemHealth,
+  StockQuote,
+  InvestorProfile,
+  RecommendationResponse,
 } from "../types/index.js";
 
 const API_BASE = "/api";
@@ -223,4 +226,58 @@ export async function fetchPredictionHistory(options?: {
   const res = await fetch(`${API_BASE}/predictions/history?${query.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch prediction history");
   return res.json();
+}
+
+
+export async function fetchSectors(): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/stocks/sectors`);
+  if (!res.ok) throw new Error("Failed to fetch sector catalog");
+  const data = await res.json();
+  return data.sectors;
+}
+
+export async function fetchStockQuote(symbol: string): Promise<StockQuote> {
+  const res = await fetch(`${API_BASE}/stocks/${symbol}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Failed to fetch quote for ${symbol}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function fetchRecommendations(
+  profile?: InvestorProfile,
+  topK = 5,
+  sector?: string
+): Promise<RecommendationResponse> {
+  const res = await fetch(`${API_BASE}/recommendations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ profile, top_k: topK, sector }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to generate recommendations");
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function fetchProfile(): Promise<InvestorProfile> {
+  const res = await fetch(`${API_BASE}/profile`);
+  if (!res.ok) throw new Error("Failed to fetch investor profile");
+  const json = await res.json();
+  return json.profile;
+}
+
+export async function saveProfile(profile: InvestorProfile): Promise<InvestorProfile> {
+  const res = await fetch(`${API_BASE}/profile`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profile),
+  });
+  if (!res.ok) throw new Error("Failed to save investor profile");
+  const json = await res.json();
+  return json.profile;
 }
